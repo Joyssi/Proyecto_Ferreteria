@@ -1,14 +1,25 @@
 import React, { useState, useEffect } from 'react';
+<<<<<<< HEAD
 import { Text, View, StyleSheet, Image, TextInput, TouchableOpacity, Alert, Dimensions, ScrollView } from 'react-native';
+=======
+import { Text, View, StyleSheet, FlatList, Image, TextInput, TouchableOpacity, Alert, Dimensions, Animated } from 'react-native';
+>>>>>>> 167d0d69c8d381d00baa38cb44b2edc93d2ae257
 import { getFirestore, collection, getDocs } from 'firebase/firestore';
 import { appFirebase } from '../../DataBase/firebaseConfig'; 
+
+const { width } = Dimensions.get('window'); // Para el diseño responsivo y centralizado
 
 export default function ProductList() {
     const db = getFirestore(appFirebase);
     const [products, setProducts] = useState([]);
     const [filteredProducts, setFilteredProducts] = useState([]);
     const [searchText, setSearchText] = useState('');
+<<<<<<< HEAD
     
+=======
+    const scrollX = new Animated.Value(0);
+
+>>>>>>> 167d0d69c8d381d00baa38cb44b2edc93d2ae257
     useEffect(() => {
         const fetchProducts = async () => {
             try {
@@ -16,7 +27,7 @@ export default function ProductList() {
                 const productsList = querySnapshot.docs.map(doc => ({
                     id: doc.id,
                     ...doc.data(),
-                    image: require('../../assets/taladro.jpg'), // Imagen local 
+                    image: require('../../assets/taladro.jpg'), // Imagen local
                 }));
                 setProducts(productsList);
                 setFilteredProducts(productsList);
@@ -51,6 +62,7 @@ export default function ProductList() {
                 onChangeText={setSearchText}
             />
 
+<<<<<<< HEAD
             <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.productCarousel}>
                 {filteredProducts.map((item) => (
                     <View key={item.id} style={styles.productCard}>
@@ -68,12 +80,56 @@ export default function ProductList() {
                     </View>
                 ))}
             </ScrollView>
+=======
+            <Animated.FlatList
+                data={filteredProducts}
+                keyExtractor={(item) => item.id}
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                contentContainerStyle={{ paddingHorizontal: width * 0.1 }}
+                snapToInterval={width * 0.7}
+                decelerationRate="fast"
+                onScroll={Animated.event(
+                    [{ nativeEvent: { contentOffset: { x: scrollX } } }],
+                    { useNativeDriver: true }
+                )}
+                renderItem={({ item, index }) => {
+                    const scale = scrollX.interpolate({
+                        inputRange: [
+                            (index - 1) * (width * 0.7),
+                            index * (width * 0.7),
+                            (index + 1) * (width * 0.7),
+                        ],
+                        outputRange: [0.9, 1, 0.9],
+                        extrapolate: 'clamp',
+                    });
+                    return (
+                        <Animated.View style={[styles.productCard, { transform: [{ scale }] }]}>
+                            <Image source={item.image} style={styles.productImage} />
+                            <Text style={styles.productName}>{item.productName}</Text>
+                            <Text style={styles.productDescription}>{item.description}</Text>
+                            <Text style={styles.productBrand}>{item.brand}</Text>
+                            <Text style={styles.productPrice}>C$ {item.price}</Text>
+                            <TouchableOpacity 
+                                style={styles.buyButton} 
+                                onPress={() => handleBuy(item.productName)}
+                            >
+                                <Text style={styles.buyButtonText}>Comprar</Text>
+                            </TouchableOpacity>
+                        </Animated.View>
+                    );
+                }}
+            />
+>>>>>>> 167d0d69c8d381d00baa38cb44b2edc93d2ae257
         </View>
     );
 }
 
+<<<<<<< HEAD
 const { width } = Dimensions.get('window');
 
+=======
+>>>>>>> 167d0d69c8d381d00baa38cb44b2edc93d2ae257
 const styles = StyleSheet.create({
     container: {
         flex: 1,
@@ -94,12 +150,14 @@ const styles = StyleSheet.create({
         paddingHorizontal: 10,
         marginBottom: 20,
     },
-    productCarousel: {
-        marginBottom: 20,
-    },
     productCard: {
+<<<<<<< HEAD
         width: width * 0.6, // Ajustar ancho de la tarjeta
         marginRight: 15,
+=======
+        width: width * 0.6,
+        marginHorizontal: width * 0.05,
+>>>>>>> 167d0d69c8d381d00baa38cb44b2edc93d2ae257
         backgroundColor: '#fff',
         borderRadius: 10,
         shadowColor: '#000',
@@ -117,10 +175,11 @@ const styles = StyleSheet.create({
         marginBottom: 10,
     },
     productName: {
-        fontSize: 16,
+        fontSize: 26,
         fontWeight: 'bold',
         textAlign: 'center',
         marginBottom: 5,
+        color: '#0000FF',
     },
     productDescription: {
         fontSize: 14,
@@ -128,8 +187,13 @@ const styles = StyleSheet.create({
         textAlign: 'center',
         marginBottom: 10,
     },
+    productBrand: {
+        fontSize: 14,
+        color: '#777',
+        textAlign: 'center',
+    },
     productPrice: {
-        fontSize: 18,
+        fontSize: 38,
         fontWeight: 'bold',
         color: '#2e7d32',
         marginBottom: 10,
@@ -137,8 +201,8 @@ const styles = StyleSheet.create({
     buyButton: {
         backgroundColor: '#ff5722',
         paddingVertical: 10,
-        paddingHorizontal: 20,
-        borderRadius: 5,
+        paddingHorizontal: 70,
+        borderRadius: 10,
         marginTop: 10,
     },
     buyButtonText: {
