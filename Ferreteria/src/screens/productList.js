@@ -1,11 +1,7 @@
 import React, { useState, useEffect } from 'react';
-<<<<<<< HEAD
-import { Text, View, StyleSheet, Image, TextInput, TouchableOpacity, Alert, Dimensions, ScrollView } from 'react-native';
-=======
 import { Text, View, StyleSheet, FlatList, Image, TextInput, TouchableOpacity, Alert, Dimensions, Animated } from 'react-native';
->>>>>>> 167d0d69c8d381d00baa38cb44b2edc93d2ae257
 import { getFirestore, collection, getDocs } from 'firebase/firestore';
-import { appFirebase } from '../../DataBase/firebaseConfig'; 
+import { appFirebase } from '../../DataBase/firebaseConfig';
 
 const { width } = Dimensions.get('window'); // Para el diseño responsivo y centralizado
 
@@ -14,12 +10,8 @@ export default function ProductList() {
     const [products, setProducts] = useState([]);
     const [filteredProducts, setFilteredProducts] = useState([]);
     const [searchText, setSearchText] = useState('');
-<<<<<<< HEAD
-    
-=======
     const scrollX = new Animated.Value(0);
 
->>>>>>> 167d0d69c8d381d00baa38cb44b2edc93d2ae257
     useEffect(() => {
         const fetchProducts = async () => {
             try {
@@ -62,25 +54,6 @@ export default function ProductList() {
                 onChangeText={setSearchText}
             />
 
-<<<<<<< HEAD
-            <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.productCarousel}>
-                {filteredProducts.map((item) => (
-                    <View key={item.id} style={styles.productCard}>
-                        <Image source={item.image} style={styles.productImage} />
-                        <Text style={styles.productName}>{item.productName}</Text>
-                        <Text style={styles.productDescription}>{item.description}</Text>
-                        <Text style={styles.productBrand}>{item.brand}</Text>
-                        <Text style={styles.productPrice}>${item.price}</Text>
-                        <TouchableOpacity 
-                            style={styles.buyButton} 
-                            onPress={() => handleBuy(item.productName)}
-                        >
-                            <Text style={styles.buyButtonText}>Comprar</Text>
-                        </TouchableOpacity>
-                    </View>
-                ))}
-            </ScrollView>
-=======
             <Animated.FlatList
                 data={filteredProducts}
                 keyExtractor={(item) => item.id}
@@ -120,16 +93,10 @@ export default function ProductList() {
                     );
                 }}
             />
->>>>>>> 167d0d69c8d381d00baa38cb44b2edc93d2ae257
         </View>
     );
 }
 
-<<<<<<< HEAD
-const { width } = Dimensions.get('window');
-
-=======
->>>>>>> 167d0d69c8d381d00baa38cb44b2edc93d2ae257
 const styles = StyleSheet.create({
     container: {
         flex: 1,
@@ -151,13 +118,8 @@ const styles = StyleSheet.create({
         marginBottom: 20,
     },
     productCard: {
-<<<<<<< HEAD
-        width: width * 0.6, // Ajustar ancho de la tarjeta
-        marginRight: 15,
-=======
         width: width * 0.6,
         marginHorizontal: width * 0.05,
->>>>>>> 167d0d69c8d381d00baa38cb44b2edc93d2ae257
         backgroundColor: '#fff',
         borderRadius: 10,
         shadowColor: '#000',
