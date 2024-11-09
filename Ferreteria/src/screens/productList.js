@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Text, View, StyleSheet, FlatList, Image, TextInput, TouchableOpacity, Alert, Dimensions, ScrollView } from 'react-native';
+import { Text, View, StyleSheet, Image, TextInput, TouchableOpacity, Alert, Dimensions, ScrollView } from 'react-native';
 import { getFirestore, collection, getDocs } from 'firebase/firestore';
 import { appFirebase } from '../../DataBase/firebaseConfig'; 
 
@@ -9,7 +9,6 @@ export default function ProductList() {
     const [filteredProducts, setFilteredProducts] = useState([]);
     const [searchText, setSearchText] = useState('');
     
-    // Obtener productos desde Firestore
     useEffect(() => {
         const fetchProducts = async () => {
             try {
@@ -20,16 +19,14 @@ export default function ProductList() {
                     image: require('../../assets/taladro.jpg'), // Imagen local 
                 }));
                 setProducts(productsList);
-                setFilteredProducts(productsList); // Inicialmente se mostrarán todos los productos
+                setFilteredProducts(productsList);
             } catch (error) {
                 console.log("Error al obtener los productos: ", error);
             }
         };
-
         fetchProducts();
     }, []);
 
-    // Filtrar productos basado en el texto de búsqueda
     useEffect(() => {
         const filtered = products.filter(product =>
             product.productName.toLowerCase().includes(searchText.toLowerCase()) ||
@@ -39,7 +36,6 @@ export default function ProductList() {
         setFilteredProducts(filtered);
     }, [searchText, products]);
 
-    // Función para el botón de "Compra"
     const handleBuy = (productName) => {
         Alert.alert("Compra realizada", `Has comprado el producto: ${productName}`);
     };
@@ -48,7 +44,6 @@ export default function ProductList() {
         <View style={styles.container}>
             <Text style={styles.title}>Tienda Online</Text>
             
-            {/* Barra de búsqueda */}
             <TextInput
                 style={styles.searchInput}
                 placeholder="Buscar productos..."
@@ -56,34 +51,28 @@ export default function ProductList() {
                 onChangeText={setSearchText}
             />
 
-            {/* Lista de productos */}
             <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.productCarousel}>
-                <FlatList
-                    data={filteredProducts}
-                    keyExtractor={(item) => item.id}
-                    numColumns={3} // Mostrar los productos en 3 columnas
-                    renderItem={({ item }) => (
-                        <View style={styles.productCard}>
-                            <Image source={item.image} style={styles.productImage} />
-                            <Text style={styles.productName}>{item.productName}</Text>
-                            <Text style={styles.productDescription}>{item.description}</Text>
-                            <Text style={styles.productBrand}>{item.brand}</Text>
-                            <Text style={styles.productPrice}>${item.price}</Text>
-                            <TouchableOpacity 
-                                style={styles.buyButton} 
-                                onPress={() => handleBuy(item.productName)} // Llamada a la función de compra
-                            >
-                                <Text style={styles.buyButtonText}>Comprar</Text>
-                            </TouchableOpacity>
-                        </View>
-                    )}
-                />
+                {filteredProducts.map((item) => (
+                    <View key={item.id} style={styles.productCard}>
+                        <Image source={item.image} style={styles.productImage} />
+                        <Text style={styles.productName}>{item.productName}</Text>
+                        <Text style={styles.productDescription}>{item.description}</Text>
+                        <Text style={styles.productBrand}>{item.brand}</Text>
+                        <Text style={styles.productPrice}>${item.price}</Text>
+                        <TouchableOpacity 
+                            style={styles.buyButton} 
+                            onPress={() => handleBuy(item.productName)}
+                        >
+                            <Text style={styles.buyButtonText}>Comprar</Text>
+                        </TouchableOpacity>
+                    </View>
+                ))}
             </ScrollView>
         </View>
     );
 }
 
-const { width } = Dimensions.get('window'); // Para hacer el diseño responsivo
+const { width } = Dimensions.get('window');
 
 const styles = StyleSheet.create({
     container: {
@@ -109,8 +98,8 @@ const styles = StyleSheet.create({
         marginBottom: 20,
     },
     productCard: {
-        flex: 1,
-        margin: 10,
+        width: width * 0.6, // Ajustar ancho de la tarjeta
+        marginRight: 15,
         backgroundColor: '#fff',
         borderRadius: 10,
         shadowColor: '#000',
@@ -122,8 +111,8 @@ const styles = StyleSheet.create({
         alignItems: 'center',
     },
     productImage: {
-        width: width * 0.4, // 40% del ancho de la pantalla
-        height: width * 0.4, // 40% del ancho de la pantalla para hacer la imagen cuadrada
+        width: width * 0.5,
+        height: width * 0.5,
         borderRadius: 10,
         marginBottom: 10,
     },

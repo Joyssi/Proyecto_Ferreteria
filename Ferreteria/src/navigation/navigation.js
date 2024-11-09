@@ -3,10 +3,12 @@ import { NavigationContainer } from '@react-navigation/native';
 import React from 'react';
 import { View } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons'; // Importar los íconos
+import Entypo from '@expo/vector-icons/Entypo';
 
 import formProduct from '../screens/formProduct';
 import productList from '../screens/productList';
 import productManagement from '../screens/productManagement';
+import estadistics from '../estadistics/estadistics';
 
 const Tab = createBottomTabNavigator();
 
@@ -53,6 +55,15 @@ function MyTabs() {
                 options={{
                     tabBarIcon: ({ color, size }) => (
                         <Icon name="settings" size={size} color={color} />
+                    ),
+                }}
+            />
+            <Tab.Screen
+                name="Estadísticas"
+                component={estadistics}
+                options={{
+                    tabBarIcon: ({ color, size }) => (
+                        <Entypo name="bar-graph" size={24} color={color} />
                     ),
                 }}
             />
