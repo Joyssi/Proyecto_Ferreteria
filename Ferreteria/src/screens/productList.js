@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Text, View, StyleSheet, FlatList, Image, TextInput, TouchableOpacity, Alert, Dimensions, Animated } from 'react-native';
+import { Text, View, StyleSheet, FlatList, Image, TextInput, TouchableOpacity, Alert, Dimensions, Animated, RefreshControl } from 'react-native';
 import { getFirestore, collection, getDocs } from 'firebase/firestore';
 import { appFirebase } from '../../DataBase/firebaseConfig';
 
@@ -10,26 +10,33 @@ export default function ProductList() {
     const [products, setProducts] = useState([]);
     const [filteredProducts, setFilteredProducts] = useState([]);
     const [searchText, setSearchText] = useState('');
+    const [isRefreshing, setIsRefreshing] = useState(false); // Estado para el control de actualización
     const scrollX = new Animated.Value(0);
 
+    // Función para obtener los productos desde Firestore
+    const fetchProducts = async () => {
+        setIsRefreshing(true); // Activar el estado de carga
+        try {
+            const querySnapshot = await getDocs(collection(db, 'colecProductos'));
+            const productsList = querySnapshot.docs.map(doc => ({
+                id: doc.id,
+                ...doc.data(),
+            }));
+            setProducts(productsList);
+            setFilteredProducts(productsList);
+        } catch (error) {
+            console.log("Error al obtener los productos: ", error);
+        } finally {
+            setIsRefreshing(false); // Desactivar el estado de carga
+        }
+    };
+
+    // Cargar los productos al inicio
     useEffect(() => {
-        const fetchProducts = async () => {
-            try {
-                const querySnapshot = await getDocs(collection(db, 'colecProductos'));
-                const productsList = querySnapshot.docs.map(doc => ({
-                    id: doc.id,
-                    ...doc.data(),
-                    image: require('../../assets/taladro.jpg'), // Imagen local
-                }));
-                setProducts(productsList);
-                setFilteredProducts(productsList);
-            } catch (error) {
-                console.log("Error al obtener los productos: ", error);
-            }
-        };
         fetchProducts();
     }, []);
 
+    // Filtrar productos en base al texto de búsqueda
     useEffect(() => {
         const filtered = products.filter(product =>
             product.productName.toLowerCase().includes(searchText.toLowerCase()) ||
@@ -39,14 +46,20 @@ export default function ProductList() {
         setFilteredProducts(filtered);
     }, [searchText, products]);
 
+    // Manejar la compra de un producto
     const handleBuy = (productName) => {
         Alert.alert("Compra realizada", `Has comprado el producto: ${productName}`);
     };
 
+    // Función para manejar el evento de "pull-to-refresh"
+    const onRefresh = () => {
+        // Refrescar los productos
+        fetchProducts();
+    };
+
     return (
         <View style={styles.container}>
-            <Text style={styles.title}>Tienda Online</Text>
-            
+
             <TextInput
                 style={styles.searchInput}
                 placeholder="Buscar productos..."
@@ -66,6 +79,12 @@ export default function ProductList() {
                     [{ nativeEvent: { contentOffset: { x: scrollX } } }],
                     { useNativeDriver: true }
                 )}
+                refreshControl={
+                    <RefreshControl
+                        refreshing={isRefreshing}
+                        onRefresh={onRefresh} // Llamar a la función onRefresh
+                    />
+                }
                 renderItem={({ item, index }) => {
                     const scale = scrollX.interpolate({
                         inputRange: [
@@ -78,10 +97,12 @@ export default function ProductList() {
                     });
                     return (
                         <Animated.View style={[styles.productCard, { transform: [{ scale }] }]}>
-                            <Image source={item.image} style={styles.productImage} />
+                            {/* Mostrar imagen según URI guardada en Firestore */}
+                            <Image source={{ uri: item.imageUrl }} style={styles.productImage} />
                             <Text style={styles.productName}>{item.productName}</Text>
                             <Text style={styles.productDescription}>{item.description}</Text>
-                            <Text style={styles.productBrand}>{item.brand}</Text>
+                            <Text style={styles.productBrand}>Marca: {item.brand}</Text>
+                            <Text style={styles.productCategory}>Categoría: {item.category}</Text>
                             <Text style={styles.productPrice}>C$ {item.price}</Text>
                             <TouchableOpacity 
                                 style={styles.buyButton} 
@@ -101,7 +122,7 @@ const styles = StyleSheet.create({
     container: {
         flex: 1,
         padding: 10,
-        backgroundColor: '#f4f4f4',
+        backgroundColor: '#fff',
     },
     title: {
         fontSize: 24,
@@ -111,7 +132,7 @@ const styles = StyleSheet.create({
     },
     searchInput: {
         height: 40,
-        borderColor: '#ccc',
+        borderColor: '#1357a6',
         borderWidth: 1,
         borderRadius: 5,
         paddingHorizontal: 10,
@@ -121,7 +142,7 @@ const styles = StyleSheet.create({
         width: width * 0.6,
         marginHorizontal: width * 0.05,
         backgroundColor: '#fff',
-        borderRadius: 10,
+        borderRadius: 20,
         shadowColor: '#000',
         shadowOffset: { width: 0, height: 2 },
         shadowOpacity: 0.8,
@@ -131,8 +152,8 @@ const styles = StyleSheet.create({
         alignItems: 'center',
     },
     productImage: {
-        width: width * 0.5,
-        height: width * 0.5,
+        width: width * 0.55,
+        height: width * 0.78,
         borderRadius: 10,
         marginBottom: 10,
     },
@@ -141,34 +162,39 @@ const styles = StyleSheet.create({
         fontWeight: 'bold',
         textAlign: 'center',
         marginBottom: 5,
-        color: '#0000FF',
+        color: '#1e91ed',
     },
     productDescription: {
-        fontSize: 14,
-        color: '#555',
-        textAlign: 'center',
+        fontSize: 12,
+        color: '#4ca1f5',
+        textAlign: 'justify',
         marginBottom: 10,
     },
     productBrand: {
-        fontSize: 14,
-        color: '#777',
-        textAlign: 'center',
+        fontSize: 16,
+        color: '#4ca1f5',
+        textAlign: 'left',
+    },
+    productCategory: {
+        fontSize: 12,
+        color: '#4ca1f5',
+        textAlign: 'left',
     },
     productPrice: {
         fontSize: 38,
         fontWeight: 'bold',
-        color: '#2e7d32',
-        marginBottom: 10,
+        color: '#1357a6',
     },
     buyButton: {
-        backgroundColor: '#ff5722',
+        backgroundColor: '#1663be',
         paddingVertical: 10,
         paddingHorizontal: 70,
-        borderRadius: 10,
+        borderRadius: 20,
         marginTop: 10,
     },
     buyButtonText: {
         color: '#fff',
         fontWeight: 'bold',
+        fontSize: 14,
     },
 });

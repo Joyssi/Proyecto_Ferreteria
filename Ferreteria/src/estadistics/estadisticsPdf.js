@@ -73,11 +73,11 @@ const EstadisticsPDF = ({ dataProducts }) => {
             width={screenWidth - screenWidth * 0.1}
             height={520}
             chartConfig={{
-              backgroundGradientFrom: "#00FFFF",
+              backgroundGradientFrom: "#104a8e",
               backgroundGradientFromOpacity: 0.1,
               backgroundGradientTo: "#FFFFFF",
               backgroundGradientToOpacity: 1,
-              color: (opacity = 1) => `rgba(0, 123, 255, ${opacity})`,
+              color: (opacity = 1) => `rgba(0, 12, 255, ${opacity})`,
               strokeWidth: 1,
               barPercentage: 0.5,
             }}
@@ -115,9 +115,9 @@ const styles = StyleSheet.create({
     marginTop: 10,
   },
   buttonStyle: {
-    backgroundColor: "blue",
+    backgroundColor: "purple",
     padding: 10,
-    borderRadius: 5,
+    borderRadius: 20,
     alignItems: "center",
     shadowColor: "#000",
     shadowOffset: {
@@ -134,7 +134,7 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
   },
   errorText: {
-    color: "blue",
+    color: "green",
     fontSize: 16,
     textAlign: "center",
     marginTop: 20,

@@ -1,8 +1,9 @@
-import { View, Text, Button, StyleSheet, Image, ScrollView, TextInput, Alert, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, Image, ScrollView, TextInput, Alert, TouchableOpacity } from 'react-native';
 import React, { useState } from 'react';
-import { collection, addDoc, getFirestore } from "firebase/firestore"; 
+import { collection, addDoc, getFirestore } from "firebase/firestore";
 import * as ImagePicker from 'expo-image-picker';
 import { appFirebase } from '../../DataBase/firebaseConfig.js';
+import RNPickerSelect from 'react-native-picker-select';  // Importamos el picker
 
 export default function FormProductProduct() {
     const db = getFirestore(appFirebase);
@@ -13,14 +14,15 @@ export default function FormProductProduct() {
         brand: "",
         stockQuantity: 0,
         price: 0,
-        imageUrl: "https://example.com/default-image.png", // URL predeterminada
+        imageUrl: "",
+        category: "", // Añadimos el campo category
     });
+
+    const [image, setImage] = useState(null);
 
     const establecerEstado = (name, value) => {
         setProducts({ ...product, [name]: value });
     };
-
-    const [image, setImage] = useState(null);
 
     // Función que permite elegir una imagen de la galería
     const pickImage = async () => {
@@ -32,19 +34,30 @@ export default function FormProductProduct() {
         });
 
         if (!result.canceled) {
-            setImage(result.assets[0].uri); // Solo para mostrar la imagen seleccionada
+            setImage(result.assets[0].uri); // Guardar la URI de la imagen seleccionada
         }
     };
 
     const validarDatos = () => {
-        guardarProducto({ ...product, imageUrl: image || "https://example.com/default-image.png" });
+        if (!image) {
+            Alert.alert('Error', 'Por favor selecciona una imagen.');
+            return;
+        }
+
+        if (!product.category) {
+            Alert.alert('Error', 'Por favor selecciona una categoría.');
+            return;
+        }
+
+        guardarProducto({ ...product, imageUrl: image }); // Guardar la URI local en Firestore
         setProducts({
             productName: "",
             description: "",
             brand: "",
             stockQuantity: 0,
             price: 0,
-            imageUrl: "https://example.com/default-image.png",
+            imageUrl: "",
+            category: "",
         });
         setImage(null);
         Alert.alert('Producto registrado');
@@ -59,9 +72,19 @@ export default function FormProductProduct() {
         }
     };
 
+    // Lista de categorías para el picker
+    const categories = [
+        { label: 'Herramientas Eléctricas', value: 'herramientas-electricas' },
+        { label: 'Pinturas y Accesorios', value: 'pinturas-y-accesorios' },
+        { label: 'Plomería', value: 'plomeria' },
+        { label: 'Jardinería', value: 'jardineria' },
+        { label: 'Seguridad', value: 'seguridad' },
+        { label: 'Construcción', value: 'construccion' },
+        { label: 'Accesorios de Automóvil', value: 'accesorios-de-automovil' },
+    ];
+
     return (
         <ScrollView contentContainerStyle={styles.container}>
-            <Text style={styles.titulo}>Nuevo Producto</Text>
 
             <View style={styles.inputContainer}>
                 <Text style={styles.label}>Nombre del producto:</Text>
@@ -98,7 +121,7 @@ export default function FormProductProduct() {
                 <TextInput
                     style={styles.TextInput}
                     placeholder="Ingrese el precio"
-                    value={product.price}
+                    value={product.price.toString()}
                     onChangeText={(value) => establecerEstado("price", value)}
                     keyboardType="numeric"
                 />
@@ -109,9 +132,21 @@ export default function FormProductProduct() {
                 <TextInput
                     style={styles.TextInput}
                     placeholder="Ingrese la cantidad"
-                    value={product.stockQuantity}
+                    value={product.stockQuantity.toString()}
                     onChangeText={(value) => establecerEstado("stockQuantity", value)}
                     keyboardType="numeric"
+                />
+            </View>
+
+            <View style={styles.inputContainer}>
+                <Text style={styles.label}>Categoría:</Text>
+                <RNPickerSelect
+                    onValueChange={(value) => establecerEstado("category", value)}
+                    items={categories}
+                    value={product.category}
+                    style={{
+                        inputAndroid: styles.TextInput,
+                    }}
                 />
             </View>
 
@@ -133,23 +168,18 @@ const styles = StyleSheet.create({
         padding: 20,
         backgroundColor: '#fff',
     },
-    titulo: {
-        fontSize: 24,
-        fontWeight: 'bold',
-        textAlign: 'center',
-        marginVertical: 20,
-        color: '#333',
-    },
     inputContainer: {
         marginBottom: 20,
     },
     label: {
         fontSize: 16,
         marginBottom: 8,
-        color: '#333',
+        color: '#009dff',
+        alignContent: 'center',
+        fontWeight: 'bold',
     },
     TextInput: {
-        borderColor: '#ddd',
+        borderColor: '#1357a6',
         borderWidth: 1,
         borderRadius: 8,
         padding: 12,
@@ -164,7 +194,7 @@ const styles = StyleSheet.create({
         borderRadius: 8,
     },
     button: {
-        backgroundColor: '#4CAF50',
+        backgroundColor: '#104a8e',
         paddingVertical: 12,
         paddingHorizontal: 20,
         borderRadius: 8,

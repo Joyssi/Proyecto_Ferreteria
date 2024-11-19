@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Text, View, Button, StyleSheet, Alert, FlatList, TextInput, Image, TouchableOpacity, ScrollView } from 'react-native';
+import { Text, View, Button, StyleSheet, Alert, FlatList, TextInput, Image, TouchableOpacity, ScrollView, RefreshControl } from 'react-native';
 import { getFirestore, collection, getDocs, deleteDoc, doc, updateDoc } from 'firebase/firestore';
 import { appFirebase } from '../../DataBase/firebaseConfig'; 
 import Icon from 'react-native-vector-icons/MaterialIcons';  // Importar los íconos
@@ -7,33 +7,39 @@ import Icon from 'react-native-vector-icons/MaterialIcons';  // Importar los íc
 export default function ProductManagement() {
     const db = getFirestore(appFirebase);
     const [products, setProducts] = useState([]);
+    const [filteredProducts, setFilteredProducts] = useState([]);
+    const [isRefreshing, setIsRefreshing] = useState(false); // Estado para el refresh
+    const [searchText, setSearchText] = useState('');
     const [editingProduct, setEditingProduct] = useState(null);
     const [productName, setProductName] = useState('');
     const [description, setDescription] = useState('');
     const [brand, setBrand] = useState('');
     const [price, setPrice] = useState('');
     const [stockQuantity, setStockQuantity] = useState('');
-    const [filteredProducts, setFilteredProducts] = useState([]);
-    const [searchText, setSearchText] = useState('');
 
     useEffect(() => {
-        const fetchProducts = async () => {
-            try {
-                const querySnapshot = await getDocs(collection(db, 'colecProductos'));
-                const productsList = querySnapshot.docs.map(doc => ({
-                    id: doc.id,
-                    ...doc.data(),
-                }));
-                setProducts(productsList);
-                setFilteredProducts(productsList);
-            } catch (error) {
-                console.log("Error al obtener los productos: ", error);
-            }
-        };
-
         fetchProducts();
     }, []);
 
+    // Función para obtener productos
+    const fetchProducts = async () => {
+        setIsRefreshing(true); // Activar el refresh
+        try {
+            const querySnapshot = await getDocs(collection(db, 'colecProductos'));
+            const productsList = querySnapshot.docs.map(doc => ({
+                id: doc.id,
+                ...doc.data(),
+            }));
+            setProducts(productsList);
+            setFilteredProducts(productsList);
+        } catch (error) {
+            console.log("Error al obtener los productos: ", error);
+        } finally {
+            setIsRefreshing(false); // Desactivar el refresh
+        }
+    };
+
+    // Función para eliminar un producto
     const deleteProduct = async (id) => {
         try {
             await deleteDoc(doc(db, 'colecProductos', id));
@@ -46,9 +52,9 @@ export default function ProductManagement() {
         }
     };
 
+    // Función para empezar a editar un producto
     const startEditing = (product) => {
-        // Limpiar el campo de búsqueda cuando se empieza a editar
-        setSearchText('');
+        setSearchText(''); // Limpiar campo de búsqueda al editar
         setEditingProduct(product);
         setProductName(product.productName);
         setDescription(product.description);
@@ -57,6 +63,7 @@ export default function ProductManagement() {
         setStockQuantity(product.stockQuantity.toString());
     };
 
+    // Función para actualizar un producto
     const updateProduct = async () => {
         if (!productName || !description || !brand || !price || !stockQuantity) {
             Alert.alert("Error", "Todos los campos son requeridos.");
@@ -88,6 +95,7 @@ export default function ProductManagement() {
         }
     };
 
+    // Función para filtrar productos
     const filterProducts = (text) => {
         setSearchText(text);
 
@@ -105,7 +113,6 @@ export default function ProductManagement() {
 
     return (
         <View style={styles.container}>
-            <Text style={styles.title}>Gestión de Productos</Text>
 
             {!editingProduct && (
                 <TextInput
@@ -163,20 +170,21 @@ export default function ProductManagement() {
                     renderItem={({ item }) => (
                         <View style={styles.productRow}>
                             <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+                                {/* Usamos la URI de la imagen desde Firestore */}
                                 <Image
-                                    source={require('../../assets/taladro.jpg')}
+                                    source={{ uri: item.imageUrl }} 
                                     style={styles.productImage}
                                 />
                                 <View style={styles.productInfo}>
                                     <Text><Text style={styles.bold}>Nombre:</Text> {item.productName}</Text>
                                     <Text><Text style={styles.bold}>Descripción:</Text> {item.description}</Text>
                                     <Text><Text style={styles.bold}>Marca:</Text> {item.brand}</Text>
-                                    <Text><Text style={styles.bold}>Precio:</Text> ${item.price}</Text>
+                                    <Text><Text style={styles.bold}>Precio:</Text> C$ {item.price}</Text>
+                                    <Text><Text style={styles.bold}>Categoría: </Text>{item.category}</Text>
                                     <Text><Text style={styles.bold}>Cantidad en stock:</Text> {item.stockQuantity}</Text>
                                 </View>
                             </ScrollView>
                             <View style={styles.buttonRow}>
-                                {/* Reemplazar botones por íconos */}
                                 <TouchableOpacity onPress={() => startEditing(item)}>
                                     <Icon name="edit" size={24} color="#4CAF50" />
                                 </TouchableOpacity>
@@ -195,6 +203,12 @@ export default function ProductManagement() {
                             </View>
                         </View>
                     )}
+                    refreshControl={
+                        <RefreshControl
+                            refreshing={isRefreshing}
+                            onRefresh={fetchProducts} // Función para recargar los productos
+                        />
+                    }
                 />
             )}
         </View>
@@ -205,16 +219,10 @@ const styles = StyleSheet.create({
     container: {
         flex: 1,
         padding: 15,
-        backgroundColor: '#f5f5f5',
-    },
-    title: {
-        fontSize: 24,
-        fontWeight: 'bold',
-        textAlign: 'center',
-        marginVertical: 15,
+        backgroundColor: '#fff',
     },
     input: {
-        borderColor: '#ccc',
+        borderColor: '#1357a6',
         borderWidth: 1,
         padding: 10,
         marginBottom: 15,
@@ -225,18 +233,21 @@ const styles = StyleSheet.create({
         fontSize: 14,
         fontWeight: 'bold',
         marginBottom: 5,
+        color: '#1663be'
     },
     form: {
         marginBottom: 20,
         backgroundColor: '#fff',
         padding: 15,
-        borderRadius: 10,
+        borderRadius: 20,
         elevation: 3,
     },
     formTitle: {
-        fontSize: 18,
+        fontSize: 24,
         fontWeight: 'bold',
         marginBottom: 15,
+        marginLeft: 70,
+        color: '#104a8e'
     },
     buttonRow: {
         flexDirection: 'row',

@@ -1,10 +1,8 @@
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { NavigationContainer } from '@react-navigation/native';
 import React from 'react';
-import { View } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons'; // Importar los íconos
 import Entypo from '@expo/vector-icons/Entypo';
-
 import formProduct from '../screens/formProduct';
 import productList from '../screens/productList';
 import productManagement from '../screens/productManagement';
@@ -17,7 +15,7 @@ function MyTabs() {
         <Tab.Navigator
             screenOptions={{
                 tabBarStyle: {
-                    backgroundColor: '#fff', // Fondo blanco para la barra de navegación
+                    backgroundColor: '#1870d5', // Fondo blanco para la barra de navegación
                     height: 60, // Aumentar altura para hacerlo más grande
                     paddingBottom: 5,
                     borderTopWidth: 0, // Eliminar borde superior
@@ -27,8 +25,8 @@ function MyTabs() {
                     fontWeight: 'bold', // Etiquetas en negrita
                     marginBottom: 5, // Espacio entre íconos y etiquetas
                 },
-                tabBarActiveTintColor: '#4CAF50', // Color activo
-                tabBarInactiveTintColor: '#777', // Color inactivo
+                tabBarActiveTintColor: '#fff', // Color activo
+                tabBarInactiveTintColor: '#ded4', // Color inactivo
             }}
         >
             <Tab.Screen
